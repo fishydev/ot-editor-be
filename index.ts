@@ -4,6 +4,8 @@ import * as http from "http";
 import * as cors from "cors"
 import * as fs from "fs"
 import { Server, Socket } from "socket.io"
+import { DBConnectionConfig } from "./config/db-connection"
+import * as pg from "pg"
 
 import FileRouter from "./routes/file.routes"
 
@@ -20,6 +22,9 @@ app.use("/api/files", FileRouter)
 app.get('/', (req, res) => {
   res.send("Hello World")
 })
+
+const Pool = pg.Pool
+const pool = new Pool(DBConnectionConfig)
 
 const server = http.createServer(app)
 const io = new Server(server)
