@@ -4,7 +4,7 @@ const dbName = "oteditor"
 const dbUser = "postgres"
 const dbHost = "localhost"
 const dbDriver = "postgres" as Dialect
-const dbPassword = "verysecure"
+const dbPassword = "fishydev"
 
 // const dbName = process.env.DB_NAME as string
 // const dbUser = process.env.DB_USER as string
