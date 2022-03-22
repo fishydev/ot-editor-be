@@ -1,30 +1,27 @@
 import * as express from 'express';
 import * as http from "http";
-// import * as WebSocket from "ws";
 import * as cors from "cors"
 import * as fs from "fs"
 import { Server, Socket } from "socket.io"
-import { DBConnectionConfig } from "./config/db-connection"
-import * as pg from "pg"
+import * as bodyParser from "body-parser"
+
+import routes from "./routes"
 
 import FileRouter from "./routes/file.routes"
 
-import FileModel from "./models/file"
 
 const app = express();
 
 app.use(cors())
-
+app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use("/api/files", FileRouter)
+app.use('/api/v1', routes)
 
 app.get('/', (req, res) => {
   res.send("Hello World")
 })
-
-const Pool = pg.Pool
-const pool = new Pool(DBConnectionConfig)
 
 const server = http.createServer(app)
 const io = new Server(server)
