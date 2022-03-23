@@ -6,7 +6,7 @@ import UserMiddleware from "../middleware/user.middleware"
 const userRouter = Router()
 
 //create user
-userRouter.post('/', UserMiddleware.createUserValidation , async (req: Request, res: Response) => {
+userRouter.post('/', UserMiddleware.checkNullValue, UserMiddleware.checkDuplicateValue , async (req: Request, res: Response) => {
   const payload: CreateUserDTO = req.body
   const result = await userController.create(payload)
   return res.status(200).send(result)

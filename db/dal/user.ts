@@ -23,9 +23,39 @@ export const getById = async (id: number): Promise<UserOutput> => {
   return user
 }
 
+export const getByUsername = async (username: string): Promise<UserOutput> => {
+  const user = await User.findOne({
+    where: {
+      username: username
+    }
+  })
+  if (!user) {
+    throw new Error ("Username not found")
+  }
+  return user
+}
+
 export const deleteById = async (id: number): Promise<boolean> => {
   const deletedUserCount = await User.destroy({
     where: {id}
   })
   return !!deletedUserCount
+}
+
+export const checkDuplicateUsername = async (username: string): Promise<boolean> => {
+  const duplicateUsername = await User.findOne({
+    where: {
+      username: username
+    }
+  })
+  return !!duplicateUsername
+}
+
+export const checkDuplicateEmail = async (email: string): Promise<boolean> => {
+  const duplicateEmail = await User.findOne({
+    where: {
+      email: email
+    }
+  })
+  return !!duplicateEmail
 }

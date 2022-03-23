@@ -13,3 +13,6 @@ export const getById = (id: number): Promise<UserOutput> => {
 export const deleteById = (id: number): Promise<boolean> => {
   return userDal.deleteById(id)
 }
+export const getByUsername = (username: string): Promise<UserOutput> => {
+  return userDal.getByUsername(username)
+}
