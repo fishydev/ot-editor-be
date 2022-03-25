@@ -3,6 +3,8 @@ import { CreateUserDTO } from "../../dto/user.dto"
 import { LoginDTO } from "../../dto/auth.dto"
 import { Auth } from "../../interfaces"
 import * as mapper from "./mapper"
+import * as jwt from "jsonwebtoken"
+import config from "../../config/config"
 
 
 export const login = async (payload: LoginDTO): Promise<Auth> => {
@@ -11,11 +13,15 @@ export const login = async (payload: LoginDTO): Promise<Auth> => {
   if (payload.password !== user.password) {
     throw {
       code: 401,
-      message: "invalid credentials"
+      message: "invalid login credentials"
     }
   }
 
-  let token = "token goes here"
+  const token = jwt.sign(
+    { userId: user.id, username: user.username },
+    config.jwtSecret,
+    { expiresIn: "24h" }
+  )
 
   return mapper.toAuth(user, token)
 }
