@@ -1,13 +1,44 @@
-import * as express from "express"
+import { Router, Request, Response } from "express"
+import * as fileController from "../controllers/file"
+import { CreateFileDTO } from "../dto/file.dto"
+import * as jwt from "jsonwebtoken"
+import { File } from "../interfaces/file.interface"
 
-import checkFileExists from "../middleware/checkFileExists.middleware"
-import FileController from "../controllers/file.controller"
+const fileRouter = Router()
+
+//create file
+fileRouter.post('/' , async (req: Request, res: Response) => {
+  try {
+    if (!req.headers["authorization"]) {
+      throw {
+        code: 200,
+        message: "unauthorized"
+      }
+    }
+    const tokenPayload: any = jwt.decode(req.headers["authorization"], { complete: true })?.payload
 
 
-// const checkFileExists = require ("../middleware/checkFileExists.middleware")
-const router = express.Router()
+    const payload: CreateFileDTO = {
+      filename: req.body.filename,
+      userId: tokenPayload.userId,
+      username: tokenPayload.username
+    }
+    const result = await fileController.create(payload)
+    
+    return res.status(200).send(result)
+  } catch (error: any) {
+    if (error.code) {
+      return res.status(error.code).send(error.message)
+    } else {
+      console.log(error)
+      return res.status(500).send("internal server error")
+    }
+  }
+})
 
-router.get("/:id", checkFileExists, FileController.getFile)
-router.post("/:id", FileController.createFile)
+//get file by id
+fileRouter.get('/id', async () => {
+//
+})
 
-export default router
+export default fileRouter

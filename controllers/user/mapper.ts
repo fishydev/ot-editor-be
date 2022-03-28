@@ -3,7 +3,7 @@ import { UserOutput } from "../../models/user.model"
 
 export const toUser = (user: UserOutput): User => {
   return {
-    id: user.id,
+    userId: user.userId,
     email: user.email,
     username: user.username,
     password: user.password,

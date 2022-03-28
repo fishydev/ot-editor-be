@@ -18,7 +18,7 @@ export const login = async (payload: LoginDTO): Promise<Auth> => {
   }
 
   const token = jwt.sign(
-    { userId: user.id, username: user.username },
+    { userId: user.userId, username: user.username },
     config.jwtSecret,
     { expiresIn: "24h" }
   )

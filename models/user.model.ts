@@ -2,7 +2,7 @@ import { DataTypes, Model, Optional } from "sequelize"
 import sequelizeConnection from "../db/config"
 
 interface UserAttributes {
-  id: number;
+  userId: number;
   email: string;
   username: string;
   password: string;
@@ -12,11 +12,11 @@ interface UserAttributes {
   deletedAt?: Date;
 }
 
-export interface UserInput extends Optional<UserAttributes, 'id'> {}
+export interface UserInput extends Optional<UserAttributes, 'userId'> {}
 export interface UserOutput extends Required<UserAttributes> {}
 
 class User extends Model<UserAttributes, UserInput> implements UserAttributes {
-  public id!: number
+  public userId!: number
   public email!: string
   public username!: string
   public password!: string
@@ -29,10 +29,11 @@ class User extends Model<UserAttributes, UserInput> implements UserAttributes {
 }
 
 User.init({
-  id: {
+  userId: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
+    field: "user_id"
   },
   email: {
     type: DataTypes.STRING,

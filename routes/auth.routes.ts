@@ -11,8 +11,12 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     const result = await authController.login(payload)
     return res.status(200).send(result)
   } catch (error: any) {
-    // console.log(error)
-    return res.status(error.code).send(error.message)
+    console.log(error)
+    if (error.code) {
+      return res.status(error.code).send(error.message)
+    } else {
+      return res.status(500).send("unknown error")
+    }
   }
 })
 

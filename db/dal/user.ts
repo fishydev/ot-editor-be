@@ -37,7 +37,9 @@ export const getByUsername = async (username: string): Promise<UserOutput> => {
 
 export const deleteById = async (id: number): Promise<boolean> => {
   const deletedUserCount = await User.destroy({
-    where: {id}
+    where: {
+      userId: id
+    }
   })
   return !!deletedUserCount
 }

@@ -16,7 +16,7 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.use("/api/files", FileRouter)
+// app.use("/api/files", FileRouter)
 app.use('/api/v1', routes)
 
 app.get('/', (req, res) => {
