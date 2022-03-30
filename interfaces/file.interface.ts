@@ -11,3 +11,10 @@ export interface File {
 export interface FileCreate {
   filename: string;
 }
+
+export interface FileListItem {
+  filename: string
+  isDeleted: boolean
+  createdAt: Date
+  updatedAt: Date
+}

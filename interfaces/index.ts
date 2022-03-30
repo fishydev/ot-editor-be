@@ -1,10 +1,11 @@
 import { User } from "./user.interface"
 import { Auth } from "./auth.interface"
-import { File, FileCreate } from "./file.interface"
+import { File, FileCreate, FileListItem } from "./file.interface"
 
 export {
   User,
   Auth,
   File,
-  FileCreate
+  FileCreate,
+  FileListItem
 }

@@ -41,4 +41,27 @@ fileRouter.get('/id', async () => {
 //
 })
 
+fileRouter.get('/user', async (req: Request, res: Response) => {
+  try {
+    if (!req.headers["authorization"]) {
+      throw {
+        code: 200,
+        message: "unauthorized"
+      }
+    }
+    const tokenPayload: any = jwt.decode(req.headers["authorization"], { complete: true })?.payload
+    const result = await fileController.getByUserId(tokenPayload.userId)
+    
+    return res.status(200).send(result)
+    }
+    catch (error: any) {
+    if (error.code) {
+      return res.status(error.code).send(error.message)
+    } else {
+      console.log(error)
+      return res.status(500).send("internal server error")
+    }
+  }
+})
+
 export default fileRouter

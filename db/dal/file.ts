@@ -23,17 +23,13 @@ export const getById = async (id: number): Promise<FileOutput> => {
   return file
 }
 
-// export const getByUsername = async (filename: string): Promise<FileOutput> => {
-//   const file = await User.findOne({
-//     where: {
-//       filename: filename
-//     }
-//   })
-//   if (!file) {
-//     throw new Error ("Username not found")
-//   }
-//   return file
-// }
+export const getByUserId = async (userId: number): Promise<FileOutput[]> => {
+  return await File.findAll({
+    where: {
+      userId: userId
+    }
+  })
+}
 
 // export const deleteById = async (id: number): Promise<boolean> => {
 //   const deletedUserCount = await User.destroy({
