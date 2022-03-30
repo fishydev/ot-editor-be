@@ -1,5 +1,6 @@
 export interface Auth {
   username: string;
-  password: string;
+  userId?: number
+  password?: string;
   token: string
 }

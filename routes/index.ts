@@ -7,6 +7,6 @@ const router = Router()
 
 router.use('/user', userRouter)
 router.use('/auth', authRouter)
-router.use('/file', fileRouter)
+router.use('/files', fileRouter)
 
 export default router

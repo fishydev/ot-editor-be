@@ -7,7 +7,7 @@ import { File } from "../interfaces/file.interface"
 const fileRouter = Router()
 
 //create file
-fileRouter.post('/' , async (req: Request, res: Response) => {
+fileRouter.post('/create' , async (req: Request, res: Response) => {
   try {
     if (!req.headers["authorization"]) {
       throw {
