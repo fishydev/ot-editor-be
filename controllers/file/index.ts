@@ -3,6 +3,7 @@ import { CreateFileDTO } from "../../dto/file.dto"
 import { File, FileCreate, FileListItem } from "../../interfaces"
 import * as mapper from "./mapper"
 import * as fs from "fs"
+import { FileOutput } from "../../models/file.model"
 
 export const create = async (payload: CreateFileDTO): Promise<FileCreate> => {
     const filename = payload.filename
@@ -23,4 +24,10 @@ export const create = async (payload: CreateFileDTO): Promise<FileCreate> => {
 
 export const getByUserId = async (userId: number): Promise<FileListItem[]> => {
   return (await service.getByUserId(userId)).map(mapper.toFileItem)
+}
+
+export const deleteByFileId = async (fileId: number): Promise<boolean> => {
+  const isDeleted = await service.deleteByFileId(fileId)
+
+  return isDeleted
 }

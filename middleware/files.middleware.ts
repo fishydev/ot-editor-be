@@ -1,9 +1,10 @@
 import * as fs from "fs"
-import * as express from "express"
+import { Request, Response, NextFunction } from "express"
+import { User } from "../models"
 
 
 
-const checkFileExists = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const checkFileExists = (req: Request, res: Response, next: NextFunction) => {
   const fileId = req.params.id
   const path = `./files/${fileId}.txt`
   // console.log("called checkFileExists")
@@ -19,5 +20,3 @@ const checkFileExists = (req: express.Request, res: express.Response, next: expr
     res.status(404).send("file not found")
   }
 }
-
-export default checkFileExists

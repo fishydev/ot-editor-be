@@ -8,3 +8,11 @@ export const create = (payload: FileInput): Promise<FileOutput> => {
 export const getByUserId = (userId: number): Promise<FileOutput[]> => {
   return fileDal.getByUserId(userId)
 }
+
+export const getByFileId = (fileId: number): Promise<FileOutput> => {
+  return fileDal.getById(fileId)
+}
+
+export const deleteByFileId = (fileId: number): Promise<boolean> => {
+  return fileDal.deleteById(fileId)
+}

@@ -37,8 +37,8 @@ fileRouter.post('/create' , async (req: Request, res: Response) => {
 })
 
 //get file by id
-fileRouter.get('/id', async () => {
-//
+fileRouter.get('/:id', async (req: Request, res: Response) => {
+  
 })
 
 fileRouter.get('/user', async (req: Request, res: Response) => {
@@ -53,13 +53,28 @@ fileRouter.get('/user', async (req: Request, res: Response) => {
     const result = await fileController.getByUserId(tokenPayload.userId)
     
     return res.status(200).send(result)
-    }
-    catch (error: any) {
+  }
+  catch (error: any) {
     if (error.code) {
       return res.status(error.code).send(error.message)
     } else {
       console.log(error)
       return res.status(500).send("internal server error")
+    }
+  }
+})
+
+fileRouter.delete("/:id", async (req: Request, res: Response) => {
+  try {
+    const fileId = parseInt(req.params.id)
+    const result = await fileController.deleteByFileId(fileId)
+    if (result) return res.status(200).send(`file successfully deleted`)
+    else return res.status(500).send(`failed to delete file`)
+  } catch (error: any) {
+    if (error.code) {
+      return res.status(error.code).send(error.message)
+    } else {
+      return res.status(500).send(`internal server error`)
     }
   }
 })

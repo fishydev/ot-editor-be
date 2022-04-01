@@ -31,6 +31,17 @@ export const getByUserId = async (userId: number): Promise<FileOutput[]> => {
   })
 }
 
+export const deleteById = async (fileId: number): Promise<boolean> => {
+  const deletedFileCount =  await File.destroy(
+    {
+      where: {
+        fileId: fileId
+      },
+    },
+  )
+  return !!deletedFileCount
+}
+
 // export const deleteById = async (id: number): Promise<boolean> => {
 //   const deletedUserCount = await User.destroy({
 //     where: {

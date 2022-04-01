@@ -6,7 +6,6 @@ interface FileAttributes {
   fileId: number;
   userId: number;
   filename: string;
-  isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -19,7 +18,6 @@ class File extends Model<FileAttributes, FileInput> implements FileAttributes {
   public userId!: number
   public fileId!: number
   public filename!: string
-  public isDeleted!: boolean;
   
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -46,11 +44,6 @@ File.init({
     type: DataTypes.STRING,
     allowNull: false,
     field: "filename"
-  },
-  isDeleted: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    field: "is_deleted"
   },
   createdAt: {
     type: DataTypes.DATE,

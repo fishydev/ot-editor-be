@@ -30,7 +30,10 @@ export const getByUsername = async (username: string): Promise<UserOutput> => {
     }
   })
   if (!user) {
-    throw new Error ("Username not found")
+    throw {
+      code: 404,
+      message: "Username not found"
+    }
   }
   return user
 }
