@@ -17,3 +17,8 @@ export interface FileListItem {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface DeletedFile {
+  username: string,
+  filename: string
+}

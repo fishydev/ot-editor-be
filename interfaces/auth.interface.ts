@@ -4,3 +4,10 @@ export interface Auth {
   password?: string;
   token: string
 }
+
+export interface TokenPayload {
+  userId: number,
+  username: string,
+  iat: number,
+  exp: number
+}

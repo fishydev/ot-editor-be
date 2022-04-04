@@ -1,4 +1,4 @@
-import { File, FileCreate, FileListItem } from "../../interfaces"
+import { File, FileCreate, FileListItem, DeletedFile } from "../../interfaces"
 import { FileOutput } from "../../models/file.model"
 
 export const toFile = (file: FileOutput): File => {
@@ -25,4 +25,8 @@ export const toFileItem = (file: FileOutput): FileListItem => {
     createdAt: file.createdAt,
     updatedAt: file.updatedAt
   }
+}
+
+export const toDeletedFileName = (file: FileOutput): string => {
+  return file.filename
 }

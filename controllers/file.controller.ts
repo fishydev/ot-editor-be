@@ -5,8 +5,6 @@ const getFile = async (req: express.Request, res: express.Response) => {
   const fileId = req.params.id
   const path = `./files/${fileId}.txt`
 
-  // console.log("called getFile")
-
   try {
     fs.readFile(path, (err, data) => {
       if (err) throw err
@@ -19,18 +17,6 @@ const getFile = async (req: express.Request, res: express.Response) => {
     console.log(err)
     res.status(500).send("failed to get file")
   }
-
-
-  // try {
-  //   fs.access(path, fs.constants.F_OK, (err) => {
-  //     if (err) {
-  //       throw err
-  //     }
-  //     return
-  //   })
-  // } catch (err) {
-  //   console.log(err)
-  // }
 }
 
 const createFile = async (req: express.Request, res: express.Response) => {

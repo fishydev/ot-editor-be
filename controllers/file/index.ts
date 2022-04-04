@@ -6,19 +6,7 @@ import * as fs from "fs"
 import { FileOutput } from "../../models/file.model"
 
 export const create = async (payload: CreateFileDTO): Promise<FileCreate> => {
-    const filename = payload.filename
-    const filePath = `./files/${filename}.txt`
-
-    fs.writeFile(filePath, `write something!`, (error) => {
-      if (error) {
-        console.log(error)
-        throw {
-          code: 500,
-          message: error
-        }
-      }
-      console.log(`user ${payload.username} created ${filename}.txt`)
-    })
+    await service.generateFile(payload)
     return mapper.toFileCreate(await service.create(payload))
 }
 
@@ -26,8 +14,17 @@ export const getByUserId = async (userId: number): Promise<FileListItem[]> => {
   return (await service.getByUserId(userId)).map(mapper.toFileItem)
 }
 
-export const deleteByFileId = async (fileId: number): Promise<boolean> => {
+export const deleteByFileId = async (fileId: number, username: string): Promise<boolean> => {
+  const deletedFilename = mapper.toDeletedFileName(await service.getByFileId(fileId))
   const isDeleted = await service.deleteByFileId(fileId)
 
+  if (isDeleted) {
+    await service.tagDeleteFile(username, deletedFilename)
+  }
+
   return isDeleted
+}
+
+export const getFileContent = async (username: string, filename: string): Promise<Buffer> => {
+  return service.getFileContent(username, filename)
 }
