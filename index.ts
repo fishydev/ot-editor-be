@@ -38,21 +38,23 @@ io.on('connection', (socket: Socket) => {
   //   console.log(`syncReq ${id}`)
   // })
   socket.on('syncReq', data => {
-    const fileId = data.id
-    const path = `./files/${fileId}`
-    console.log(`syncReq ${fileId}`)
+    const filename = data.filename
+    const username = data.username
+    const firstLoad = data.firstLoad
+    const path = `./files/${username}/${filename}`
+    // console.log(data)
+    console.log(`syncReq ${username}/${filename}`)
+    console.log(`content: ${data.content}`)
     try {
-      fs.writeFile(`${path}.txt`, data.content, (err) => {
-        if (err) throw err;
-        // console.log(`sync ${fileId} success`)
-      })
-      
+      if (!firstLoad) {
+        fs.writeFileSync(`${path}.txt`, data.content)
+      }
     } catch (err) {
       console.log(err)
     } finally {
       fs.readFile(`${path}.txt`, "utf8", (err, data) => {
         if (err) throw err
-        console.log(data)
+        console.log(`data: ${data}`)
   
         socket.emit("syncRes", data)
       })
