@@ -17,6 +17,7 @@
     "@types/jsonwebtoken": "^8.5.8",
     "@types/node": "^17.0.21",
     "@types/pg": "^8.6.5",
+    "@types/uuid": "^8.3.4",
     "@types/ws": "^8.5.2",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.2",
@@ -33,6 +34,7 @@
     "socket.io": "^4.4.1",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.2",
+    "uuid": "^8.3.2",
     "ws": "^8.5.0"
   }
 }

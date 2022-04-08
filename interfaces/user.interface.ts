@@ -8,3 +8,8 @@ export interface User {
   updatedAt: Date;
   deletedAt?: Date;
 }
+
+export interface ConnectedUser {
+  userId: number;
+  username: string
+}
