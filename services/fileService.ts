@@ -2,6 +2,7 @@ import * as fileDal from "../db/dal/file"
 import { FileInput, FileOutput } from "../models/file.model"
 import * as fs from "fs-extra"
 import { CreateFileDTO } from "../dto/file.dto"
+import { v4 as uuidv4 } from "uuid"
 
 export const create = async (payload: FileInput): Promise<FileOutput> => {
   return fileDal.create(payload)
@@ -66,5 +67,4 @@ export const getFileContent = async (username: string, filename: string): Promis
       resolve(content)
     })
   })
-
 }

@@ -4,7 +4,7 @@ import * as cors from "cors"
 import * as fs from "fs"
 import { Server, Socket } from "socket.io"
 import * as bodyParser from "body-parser"
-import { ActiveSession, ActiveSessions } from './services/sessionService'; 
+import { Session, ActiveSessions } from './services/sessionService'; 
 import { v4 as uuid } from "uuid"
 
 import routes from "./routes"
@@ -26,39 +26,39 @@ const io = new Server(server)
 
 const port = process.env.port || 8999
 
-const sessionTracker = new ActiveSessions()
+const activeSessions = new ActiveSessions(server)
 
 // Socket.io
-io.on('connection', (socket: Socket) => {
-  console.log("a user connected")
-  socket.on('syncReq', data => {
-    const filename = data.filename
-    const username = data.username
-    const firstLoad = data.firstLoad
-    const path = `./files/${username}/${filename}`
-    // console.log(data)
-    console.log(`syncReq ${username}/${filename}`)
-    console.log(`content: ${data.content}`)
-    try {
-      if (!firstLoad) {
-        fs.writeFileSync(`${path}.txt`, data.content)
-      }
-    } catch (err) {
-      console.log(err)
-    } finally {
-      fs.readFile(`${path}.txt`, "utf8", (err, data) => {
-        if (err) throw err
-        console.log(`data: ${data}`)
+// io.on('connection', (socket: Socket) => {
+//   console.log("a user connected")
+//   socket.on('syncReq', data => {
+//     const filename = data.filename
+//     const username = data.username
+//     const firstLoad = data.firstLoad
+//     const path = `./files/${username}/${filename}`
+//     // console.log(data)
+//     console.log(`syncReq ${username}/${filename}`)
+//     console.log(`content: ${data.content}`)
+//     try {
+//       if (!firstLoad) {
+//         fs.writeFileSync(`${path}.txt`, data.content)
+//       }
+//     } catch (err) {
+//       console.log(err)
+//     } finally {
+//       fs.readFile(`${path}.txt`, "utf8", (err, data) => {
+//         if (err) throw err
+//         console.log(`data: ${data}`)
   
-        socket.emit("syncRes", data)
-      })
-    }
-  })
+//         socket.emit("syncRes", data)
+//       })
+//     }
+//   })
 
-  socket.on('disconnect', () => {
-    console.log('user disconnected')
-  })
-})
+//   socket.on('disconnect', () => {
+//     console.log('user disconnected')
+//   })
+// })
 
 server.listen(port, () => {
   console.log(`Server started on port ${port} :)`);
