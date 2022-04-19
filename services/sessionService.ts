@@ -4,11 +4,12 @@ import { Server, Socket } from "socket.io"
 import { Server as HttpServer } from "http";
 import * as fs from "fs"
 
+//TODO copy file content to tempContent & write to file on onDestroy
 export class Session {
   fileId: number
   uuid: string
   connectedUsers: ConnectedUser[]
-
+  // tempContent: string
 
   constructor(fileId: number, uuid: string) {
     this.fileId = fileId
@@ -48,10 +49,10 @@ export class ActiveSessions {
       socket.on('openFile', data => {
         fileId = data.fileId
         user = {
-          userId: data.userId,
-          username: data.username
+          userId: data.user.userId,
+          username: data.user.username
         }
-        this.onConnect(fileId, user, socket)
+        this.onUserConnected(fileId, user, socket)
       })
       socket.on('syncReq', data => {
         const filename = data.filename
@@ -79,37 +80,44 @@ export class ActiveSessions {
     
       socket.on('disconnect', () => {
         console.log('user disconnected')
-        this.onDisconnect(fileId, user, socket)
+        this.onUserDisconnected(fileId, user, socket)
       })
     })
   }
 
-  createSession(fileId: number, uuid: string, toConnectUser: ConnectedUser) {
+  createSession(fileId: number, uuid: string): Session {
     let session = new Session(fileId, uuid)
-    session.addUser(toConnectUser)
     this.sessionList.push(session)
+    return session
   }
 
   destroySession(toDestroyFileId: number) {
     this.sessionList.filter(session => session.fileId !== toDestroyFileId)
   }
 
-  onConnect(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket) {
+  onUserConnected(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket) {
     const existingSession = this.sessionList.find(session => session.fileId === openedFileId)
     let uuid = ""
 
     if (existingSession) {
       existingSession.addUser(toConnectUser)
       uuid = existingSession.uuid
+      console.log(`joined session with uuid ${uuid}`)
+      console.log(`session fileId ${existingSession.fileId} connectedUser:`)
+      console.log(existingSession.connectedUsers)
     } else {
       uuid = uuidv4()
-      this.createSession(openedFileId, uuidv4(), toConnectUser)
+      let createdSession = this.createSession(openedFileId, uuidv4())
+      createdSession.addUser(toConnectUser)
+      console.log(`creating new session with uuid ${uuid}`)
+      console.log(`session fileId ${createdSession.fileId} connectedUser:`)
+      console.log(createdSession.connectedUsers)
     }
 
     socket.join(uuid)
   }
 
-  onDisconnect(openedFileId: number, disconnectedUser: ConnectedUser, socket: Socket) {
+  onUserDisconnected(openedFileId: number, disconnectedUser: ConnectedUser, socket: Socket) {
     let session = this.sessionList.find(session => session.fileId === openedFileId)
 
     if (session) {

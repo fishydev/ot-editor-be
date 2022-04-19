@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 })
 
 const server = http.createServer(app)
-const io = new Server(server)
+// const io = new Server(server)
 
 const port = process.env.port || 8999
 
