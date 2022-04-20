@@ -64,4 +64,11 @@ File.init({
   tableName: "files"
 })
 
+File.belongsTo(User, {
+  foreignKey: {
+    name: 'userId',
+    allowNull: false
+  }
+})
+
 export default File

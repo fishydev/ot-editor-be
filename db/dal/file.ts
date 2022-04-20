@@ -1,5 +1,6 @@
 import { Op } from "sequelize"
 import File, { FileInput, FileOutput } from "../../models/file.model"
+import User from "../../models/user.model"
 
 export const create = async(payload: FileInput): Promise<FileOutput> => {
   const file = await File.create(payload)
@@ -28,6 +29,19 @@ export const getByUserId = async (userId: number): Promise<FileOutput[]> => {
     where: {
       userId: userId
     }
+  })
+}
+
+export const getFilesByUsername = async (username: string): Promise<FileOutput[]> => {
+  return File.findAll({
+    include: [
+      {
+        model: User,
+        where: {
+          username: username
+        }
+      }
+    ]
   })
 }
 

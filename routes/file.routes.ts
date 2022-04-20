@@ -57,6 +57,25 @@ fileRouter.get('/user/:username/:filename', async (req: Request, res: Response) 
   }
 })
 
+//GET Files by Username
+fileRouter.get('/user', async (req: Request, res: Response) => {
+  try {
+    let username = req.query.username as string
+
+    const result = await fileController.getByUsername(username)
+
+    return res.status(200).send(result)
+
+  } catch (error: any) {
+    if (error.code) {
+      return res.status(error.code).send(error.message)
+    } else {
+      console.log(error)
+      return res.status(500).send("internal server error")
+    }
+  }
+})
+
 fileRouter.get('/user', async (req: Request, res: Response) => {
   try {
     if (!req.headers["authorization"]) {

@@ -14,6 +14,10 @@ export const getByUserId = async (userId: number): Promise<FileListItem[]> => {
   return (await service.getByUserId(userId)).map(mapper.toFileItem)
 }
 
+export const getByUsername = async (username: string): Promise <FileListItem[]> => {
+  return (await (await service.getFilesByUsername(username)).map(mapper.toFileItem))
+}
+
 export const deleteByFileId = async (fileId: number, username: string): Promise<boolean> => {
   const deletedFilename = mapper.toDeletedFileName(await service.getByFileId(fileId))
   const isDeleted = await service.deleteByFileId(fileId)
