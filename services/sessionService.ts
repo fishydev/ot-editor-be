@@ -1,20 +1,28 @@
 import { ConnectedUser } from "../interfaces"
-import { v4 as uuidv4 } from "uuid"
+// import { v4 as uuidv4 } from "uuid"
 import { Server, Socket } from "socket.io"
 import { Server as HttpServer } from "http";
 import * as fs from "fs"
+import { ChangeSet, Text } from "@codemirror/state"
+import { Update } from "@codemirror/collab"
 
-//TODO copy file content to tempContent & write to file on onDestroy
+
 export class Session {
   fileId: number
   uuid: string
   connectedUsers: ConnectedUser[]
+  updates: Update[]
+  doc: Text
+  pending: ((value: any) => void)[]
   // tempContent: string
 
   constructor(fileId: number, uuid: string) {
     this.fileId = fileId
     this.uuid = uuid
     this.connectedUsers = []
+    this.pending = []
+    this.updates = [],
+    this.doc = Text.of(["Start document"])
   }
 
   addUser(newUser: ConnectedUser) {
@@ -47,13 +55,39 @@ export class ActiveSessions {
       let uuid: string
       console.log("a user connected")
       socket.on('openFile', data => {
-        fileId = data.fileId
+        uuid = data.uuid
         user = {
           userId: data.user.userId,
           username: data.user.username
         }
-        this.onUserConnected(fileId, user, socket)
+        this.onUserConnected(fileId, user, socket, uuid)
+
+        let session = this.sessionList.find(session => session.uuid === uuid)
       })
+
+      socket.on('getDocument', (data, callback) => {
+        const username = data.username
+        const filename = data.filename
+        const uuid = data.uuid
+        const path = `./files/${username}/${filename}.txt`
+
+        let content = {}
+
+        let session = this.sessionList.find(session => session.uuid === uuid)
+
+        fs.readFile(path, "utf8", (err, data) => {
+          if (err) throw err
+          content = {
+            doc: data,
+            version: session?.updates.length
+          }
+          console.log(`getDocument res: ${content}`)
+          callback(content)
+        })
+
+
+      })
+
       socket.on('syncReq', data => {
         const filename = data.filename
         const username = data.username
@@ -95,19 +129,16 @@ export class ActiveSessions {
     this.sessionList.filter(session => session.fileId !== toDestroyFileId)
   }
 
-  onUserConnected(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket) {
+  onUserConnected(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket, uuid: string) {
     const existingSession = this.sessionList.find(session => session.fileId === openedFileId)
-    let uuid = ""
 
     if (existingSession) {
       existingSession.addUser(toConnectUser)
-      uuid = existingSession.uuid
       console.log(`joined session with uuid ${uuid}`)
       console.log(`session fileId ${existingSession.fileId} connectedUser:`)
       console.log(existingSession.connectedUsers)
     } else {
-      uuid = uuidv4()
-      let createdSession = this.createSession(openedFileId, uuidv4())
+      let createdSession = this.createSession(openedFileId, uuid)
       createdSession.addUser(toConnectUser)
       console.log(`creating new session with uuid ${uuid}`)
       console.log(`session fileId ${createdSession.fileId} connectedUser:`)

@@ -1,0 +1,1 @@
+let pending: ((value: any) => void)[] = []

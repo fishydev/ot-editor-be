@@ -6,6 +6,7 @@ interface FileAttributes {
   fileId: number;
   userId: number;
   filename: string;
+  uuid: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -18,6 +19,7 @@ class File extends Model<FileAttributes, FileInput> implements FileAttributes {
   public userId!: number
   public fileId!: number
   public filename!: string
+  public uuid!: string
   
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -44,6 +46,11 @@ File.init({
     type: DataTypes.STRING,
     allowNull: false,
     field: "filename"
+  },
+  uuid: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    field: "uuid"
   },
   createdAt: {
     type: DataTypes.DATE,

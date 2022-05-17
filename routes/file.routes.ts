@@ -5,6 +5,7 @@ import * as jwt from "jsonwebtoken"
 import { File } from "../interfaces/file.interface"
 import { servicesVersion } from "typescript"
 import * as fs from "fs-extra"
+import { v4 as uuidv4 } from "uuid"
 
 const fileRouter = Router()
 
@@ -22,6 +23,7 @@ fileRouter.post('/create' , async (req: Request, res: Response) => {
 
     const payload: CreateFileDTO = {
       filename: req.body.filename,
+      uuid: uuidv4(),
       userId: tokenPayload.userId,
       username: tokenPayload.username
     }

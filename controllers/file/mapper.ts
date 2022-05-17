@@ -6,6 +6,7 @@ export const toFile = (file: FileOutput): File => {
     fileId: file.fileId,
     userId: file.userId,
     filename: file.filename,
+    uuid: file.uuid,
     createdAt: file.createdAt,
     updatedAt: file.updatedAt,
     deletedAt: file.deletedAt
@@ -22,6 +23,7 @@ export const toFileItem = (file: FileOutput): FileListItem => {
   return {
     fileId: file.fileId,
     filename: file.filename,
+    uuid: file.uuid,
     createdAt: file.createdAt,
     updatedAt: file.updatedAt
   }
