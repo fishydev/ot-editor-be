@@ -133,10 +133,15 @@ export class ActiveSessions {
     const existingSession = this.sessionList.find(session => session.fileId === openedFileId)
 
     if (existingSession) {
-      existingSession.addUser(toConnectUser)
-      console.log(`joined session with uuid ${uuid}`)
-      console.log(`session fileId ${existingSession.fileId} connectedUser:`)
-      console.log(existingSession.connectedUsers)
+      if (existingSession.connectedUsers.find(u => u.userId === toConnectUser.userId)) {
+        console.log(`user ${toConnectUser.username} already connected to session`)
+      } else {
+        existingSession.addUser(toConnectUser)
+        console.log(`joined session with uuid ${uuid}`)
+        console.log(`session fileId ${existingSession.fileId} connectedUser:`)
+        console.log(existingSession.connectedUsers)
+
+      }
     } else {
       let createdSession = this.createSession(openedFileId, uuid)
       createdSession.addUser(toConnectUser)
