@@ -5,6 +5,7 @@ import * as jwt from "jsonwebtoken"
 import { File } from "../interfaces/file.interface"
 import { servicesVersion } from "typescript"
 import * as fs from "fs-extra"
+import { v4 as uuidv4 } from "uuid"
 
 const fileRouter = Router()
 
@@ -22,6 +23,7 @@ fileRouter.post('/create' , async (req: Request, res: Response) => {
 
     const payload: CreateFileDTO = {
       filename: req.body.filename,
+      uuid: uuidv4(),
       userId: tokenPayload.userId,
       username: tokenPayload.username
     }
@@ -54,6 +56,25 @@ fileRouter.get('/user/:username/:filename', async (req: Request, res: Response) 
   } catch (err) {
     console.log(err)
     res.status(500).send("failed to get file")
+  }
+})
+
+//GET Files by Username
+fileRouter.get('/user', async (req: Request, res: Response) => {
+  try {
+    let username = req.query.username as string
+
+    const result = await fileController.getByUsername(username)
+
+    return res.status(200).send(result)
+
+  } catch (error: any) {
+    if (error.code) {
+      return res.status(error.code).send(error.message)
+    } else {
+      console.log(error)
+      return res.status(500).send("internal server error")
+    }
   }
 })
 

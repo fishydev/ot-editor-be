@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize"
 import sequelizeConnection from "../db/config"
+import File from "./file.model"
 
 interface UserAttributes {
   userId: number;

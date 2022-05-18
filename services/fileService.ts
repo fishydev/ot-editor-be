@@ -12,6 +12,10 @@ export const getByUserId = (userId: number): Promise<FileOutput[]> => {
   return fileDal.getByUserId(userId)
 }
 
+export const getFilesByUsername = (username: string): Promise<FileOutput[]> => {
+  return fileDal.getFilesByUsername(username)
+}
+
 export const getByFileId = (fileId: number): Promise<FileOutput> => {
   return fileDal.getById(fileId)
 }

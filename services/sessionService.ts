@@ -1,19 +1,28 @@
 import { ConnectedUser } from "../interfaces"
-import { v4 as uuidv4 } from "uuid"
+// import { v4 as uuidv4 } from "uuid"
 import { Server, Socket } from "socket.io"
 import { Server as HttpServer } from "http";
 import * as fs from "fs"
+import { ChangeSet, Text } from "@codemirror/state"
+import { Update } from "@codemirror/collab"
+
 
 export class Session {
   fileId: number
   uuid: string
   connectedUsers: ConnectedUser[]
-
+  updates: Update[]
+  doc: Text
+  pending: ((value: any) => void)[]
+  // tempContent: string
 
   constructor(fileId: number, uuid: string) {
     this.fileId = fileId
     this.uuid = uuid
     this.connectedUsers = []
+    this.pending = []
+    this.updates = [],
+    this.doc = Text.of(["Start document"])
   }
 
   addUser(newUser: ConnectedUser) {
@@ -46,13 +55,39 @@ export class ActiveSessions {
       let uuid: string
       console.log("a user connected")
       socket.on('openFile', data => {
-        fileId = data.fileId
+        uuid = data.uuid
         user = {
-          userId: data.userId,
-          username: data.username
+          userId: data.user.userId,
+          username: data.user.username
         }
-        this.onConnect(fileId, user, socket)
+        this.onUserConnected(fileId, user, socket, uuid)
+
+        let session = this.sessionList.find(session => session.uuid === uuid)
       })
+
+      socket.on('getDocument', (data, callback) => {
+        const username = data.username
+        const filename = data.filename
+        const uuid = data.uuid
+        const path = `./files/${username}/${filename}.txt`
+
+        let content = {}
+
+        let session = this.sessionList.find(session => session.uuid === uuid)
+
+        fs.readFile(path, "utf8", (err, data) => {
+          if (err) throw err
+          content = {
+            doc: data,
+            version: session?.updates.length
+          }
+          console.log(`getDocument res: ${content}`)
+          callback(content)
+        })
+
+
+      })
+
       socket.on('syncReq', data => {
         const filename = data.filename
         const username = data.username
@@ -79,37 +114,46 @@ export class ActiveSessions {
     
       socket.on('disconnect', () => {
         console.log('user disconnected')
-        this.onDisconnect(fileId, user, socket)
+        this.onUserDisconnected(fileId, user, socket)
       })
     })
   }
 
-  createSession(fileId: number, uuid: string, toConnectUser: ConnectedUser) {
+  createSession(fileId: number, uuid: string): Session {
     let session = new Session(fileId, uuid)
-    session.addUser(toConnectUser)
     this.sessionList.push(session)
+    return session
   }
 
   destroySession(toDestroyFileId: number) {
     this.sessionList.filter(session => session.fileId !== toDestroyFileId)
   }
 
-  onConnect(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket) {
+  onUserConnected(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket, uuid: string) {
     const existingSession = this.sessionList.find(session => session.fileId === openedFileId)
-    let uuid = ""
 
     if (existingSession) {
-      existingSession.addUser(toConnectUser)
-      uuid = existingSession.uuid
+      if (existingSession.connectedUsers.find(u => u.userId === toConnectUser.userId)) {
+        console.log(`user ${toConnectUser.username} already connected to session`)
+      } else {
+        existingSession.addUser(toConnectUser)
+        console.log(`joined session with uuid ${uuid}`)
+        console.log(`session fileId ${existingSession.fileId} connectedUser:`)
+        console.log(existingSession.connectedUsers)
+
+      }
     } else {
-      uuid = uuidv4()
-      this.createSession(openedFileId, uuidv4(), toConnectUser)
+      let createdSession = this.createSession(openedFileId, uuid)
+      createdSession.addUser(toConnectUser)
+      console.log(`creating new session with uuid ${uuid}`)
+      console.log(`session fileId ${createdSession.fileId} connectedUser:`)
+      console.log(createdSession.connectedUsers)
     }
 
     socket.join(uuid)
   }
 
-  onDisconnect(openedFileId: number, disconnectedUser: ConnectedUser, socket: Socket) {
+  onUserDisconnected(openedFileId: number, disconnectedUser: ConnectedUser, socket: Socket) {
     let session = this.sessionList.find(session => session.fileId === openedFileId)
 
     if (session) {
