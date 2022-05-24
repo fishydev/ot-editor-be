@@ -6,23 +6,20 @@ import * as fs from "fs"
 import { ChangeSet, Text } from "@codemirror/state"
 import { Update } from "@codemirror/collab"
 
-
 export class Session {
   fileId: number
   uuid: string
   connectedUsers: ConnectedUser[]
   updates: Update[]
   doc: Text
-  pending: ((value: any) => void)[]
   // tempContent: string
 
   constructor(fileId: number, uuid: string) {
     this.fileId = fileId
     this.uuid = uuid
     this.connectedUsers = []
-    this.pending = []
     this.updates = [],
-    this.doc = Text.of(["Start document"])
+    this.doc = Text.of([""])
   }
 
   addUser(newUser: ConnectedUser) {
@@ -50,65 +47,65 @@ export class ActiveSessions {
 
   initWebsocket() {
     this.io.on('connection', (socket: Socket) => {
-      let fileId: number
-      let user = {} as ConnectedUser
-      let uuid: string
+      console.log(socket.handshake.query)
+      let fileId: number = parseInt(socket.handshake.query.fileId as string)
+      let uuid: string = socket.handshake.query.uuid as string
+      let user: any = socket.handshake.query.user
+      this.onUserConnected(fileId, user, socket, uuid)
       console.log("a user connected")
-      socket.on('openFile', data => {
-        uuid = data.uuid
-        user = {
-          userId: data.user.userId,
-          username: data.user.username
-        }
-        this.onUserConnected(fileId, user, socket, uuid)
 
-        let session = this.sessionList.find(session => session.uuid === uuid)
-      })
+      let connectedSession = this.sessionList.find(session => session.uuid === uuid) as Session
 
       socket.on('getDocument', (data, callback) => {
         const username = data.username
         const filename = data.filename
-        const uuid = data.uuid
         const path = `./files/${username}/${filename}.txt`
 
         let content = {}
 
-        let session = this.sessionList.find(session => session.uuid === uuid)
-
-        fs.readFile(path, "utf8", (err, data) => {
-          if (err) throw err
+        if (connectedSession?.updates.length && connectedSession.updates.length > 0) {
           content = {
-            doc: data,
-            version: session?.updates.length
+            doc: connectedSession.doc.toString(),
+            version: connectedSession.updates.length
           }
-          console.log(`getDocument res: ${content}`)
-          callback(content)
-        })
 
+          callback(content)
+        } else {
+          fs.readFile(path, "utf8", (err, data) => {
+            if (err) throw err
+            content = {
+              doc: data,
+              version: connectedSession?.updates.length
+            }
+            console.log(`getDocument res: ${content}`)
+            callback(content)
+          })
+        }
 
       })
 
-      socket.on('syncReq', data => {
-        const filename = data.filename
-        const username = data.username
-        const firstLoad = data.firstLoad
-        const path = `./files/${username}/${filename}`
-        // console.log(data)
-        console.log(`syncReq ${username}/${filename}`)
-        console.log(`content: ${data.content}`)
-        try {
-          if (!firstLoad) {
-            fs.writeFileSync(`${path}.txt`, data.content)
+      socket.on('pullUpdates', (data, callback) => {
+
+        if (data.version < connectedSession.updates.length) {
+          let response = connectedSession.updates.slice(data.version)
+          callback(response)
+        } else {
+          callback([])
+        }
+      })
+
+      socket.on('pushUpdates', (data, callback) => {
+
+        if (data.version != connectedSession.updates.length) {
+          callback(false)
+        } else {
+          for (let update of data.updates) {
+            let changes = ChangeSet.fromJSON(update.changes)
+            connectedSession.updates.push({ changes, clientID: update.clientID })
+            connectedSession.doc = changes.apply(connectedSession.doc)
           }
-        } catch (err) {
-          console.log(err)
-        } finally {
-          fs.readFile(`${path}.txt`, "utf8", (err, data) => {
-            if (err) throw err
-            console.log(`data: ${data}`)
-      
-            socket.emit("syncRes", data)
-          })
+
+          callback(true)
         }
       })
     
