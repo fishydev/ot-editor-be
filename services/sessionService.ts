@@ -12,11 +12,13 @@ export class Session {
   connectedUsers: ConnectedUser[]
   updates: Update[]
   doc: Text
+  filePath: string
   // tempContent: string
 
-  constructor(fileId: number, uuid: string) {
+  constructor(fileId: number, uuid: string, filePath: string) {
     this.fileId = fileId
     this.uuid = uuid
+    this.filePath = filePath
     this.connectedUsers = []
     this.updates = [],
     this.doc = Text.of([""])
@@ -62,6 +64,7 @@ export class ActiveSessions {
         const path = `./files/${username}/${filename}.txt`
 
         let content = {}
+        connectedSession.filePath = path
 
         if (connectedSession?.updates.length && connectedSession.updates.length > 0) {
           content = {
@@ -111,19 +114,26 @@ export class ActiveSessions {
     
       socket.on('disconnect', () => {
         console.log('user disconnected')
-        this.onUserDisconnected(fileId, user, socket)
+        socket.leave(connectedSession.uuid)
+        this.onUserDisconnected(fileId, user)
       })
     })
   }
 
   createSession(fileId: number, uuid: string): Session {
-    let session = new Session(fileId, uuid)
+    let session = new Session(fileId, uuid, "")
     this.sessionList.push(session)
     return session
   }
 
   destroySession(toDestroyFileId: number) {
     this.sessionList.filter(session => session.fileId !== toDestroyFileId)
+    let toDestroySession = this.sessionList.find(session => session.fileId === toDestroyFileId)
+
+    let data = toDestroySession?.doc.toJSON().join("\n")
+
+    fs.writeFileSync(toDestroySession?.filePath as string, data as string)
+    
   }
 
   onUserConnected(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket, uuid: string) {
@@ -150,12 +160,11 @@ export class ActiveSessions {
     socket.join(uuid)
   }
 
-  onUserDisconnected(openedFileId: number, disconnectedUser: ConnectedUser, socket: Socket) {
+  onUserDisconnected(openedFileId: number, disconnectedUser: ConnectedUser) {
     let session = this.sessionList.find(session => session.fileId === openedFileId)
 
     if (session) {
       session.removeUser(disconnectedUser.userId)
-      socket.leave(session.uuid)
       if (session.connectedUsers.length < 1) {
         this.destroySession(openedFileId)
         console.log(`removed session for fileId ${openedFileId} from active sessions`)
