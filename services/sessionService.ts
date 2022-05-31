@@ -29,7 +29,10 @@ export class Session {
   }
 
   removeUser(toRemoveUserId: number) {
-    this.connectedUsers.filter(user => user.userId !== toRemoveUserId)
+    this.connectedUsers = this.connectedUsers.filter(user => user.userId != toRemoveUserId)
+    console.log(`removed user ${toRemoveUserId}`)
+    console.log(`connectedUsers:`)
+    console.log(this.connectedUsers)
   }
 
   getConnectedUsers() {
@@ -52,7 +55,10 @@ export class ActiveSessions {
       console.log(socket.handshake.query)
       let fileId: number = parseInt(socket.handshake.query.fileId as string)
       let uuid: string = socket.handshake.query.uuid as string
-      let user: any = socket.handshake.query.user
+      let user: ConnectedUser = {
+        userId: parseInt(socket.handshake.query.userId as string),
+        username: socket.handshake.query.username as string
+      }
       this.onUserConnected(fileId, user, socket, uuid)
       console.log("a user connected")
 
@@ -78,9 +84,10 @@ export class ActiveSessions {
             if (err) throw err
             content = {
               doc: data,
-              version: connectedSession?.updates.length
+              version: 0
             }
-            console.log(`getDocument res: ${content}`)
+            connectedSession.doc = Text.of(data.split("\n"))
+            // console.log(`getDocument res: ${content}`)
             callback(content)
           })
         }
@@ -98,6 +105,8 @@ export class ActiveSessions {
       })
 
       socket.on('pushUpdates', (data, callback) => {
+        console.log("doc JSON")
+        console.log(connectedSession.doc.toJSON())
 
         if (data.version != connectedSession.updates.length) {
           callback(false)
@@ -133,11 +142,14 @@ export class ActiveSessions {
     let data = toDestroySession?.doc.toJSON().join("\n")
 
     fs.writeFileSync(toDestroySession?.filePath as string, data as string)
+    console.log(`saved file ${toDestroySession?.filePath}`)
     
   }
 
   onUserConnected(openedFileId: number, toConnectUser: ConnectedUser, socket: Socket, uuid: string) {
     const existingSession = this.sessionList.find(session => session.fileId === openedFileId)
+    console.log(`toConnectUser`)
+    console.log(toConnectUser)
 
     if (existingSession) {
       if (existingSession.connectedUsers.find(u => u.userId === toConnectUser.userId)) {
@@ -162,6 +174,10 @@ export class ActiveSessions {
 
   onUserDisconnected(openedFileId: number, disconnectedUser: ConnectedUser) {
     let session = this.sessionList.find(session => session.fileId === openedFileId)
+
+    // let s = ""
+
+    // console.log(session?.connectedUsers.map(user => s += `${user.username} `))
 
     if (session) {
       session.removeUser(disconnectedUser.userId)
