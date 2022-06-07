@@ -61,6 +61,7 @@ export class ActiveSessions {
       }
       this.onUserConnected(fileId, user, socket, uuid)
       console.log("a user connected")
+      let updateInterval: NodeJS.Timer
 
       let connectedSession = this.sessionList.find(session => session.uuid === uuid) as Session
 
@@ -96,12 +97,15 @@ export class ActiveSessions {
 
       socket.on('pullUpdates', (data, callback) => {
 
-        if (data.version < connectedSession.updates.length) {
-          let response = connectedSession.updates.slice(data.version)
-          callback(response)
-        } else {
-          callback([])
-        }
+        updateInterval = setInterval(() => {
+          if (data.version < connectedSession.updates.length) {
+            let response = connectedSession.updates.slice(data.version)
+            callback(response)
+            clearInterval(updateInterval)
+          } else {
+            console.log(`no new update, delayed for 1 s`)
+          }
+        }, 1000)
       })
 
       socket.on('pushUpdates', (data, callback) => {
@@ -110,11 +114,14 @@ export class ActiveSessions {
 
         if (data.version != connectedSession.updates.length) {
           callback(false)
+          console.log(`update not applied: version not match`)
+          console.log(`client: ${data.version}; server: ${connectedSession.updates.length}`)
         } else {
           for (let update of data.updates) {
             let changes = ChangeSet.fromJSON(update.changes)
             connectedSession.updates.push({ changes, clientID: update.clientID })
             connectedSession.doc = changes.apply(connectedSession.doc)
+            console.log(`update applied`)
           }
 
           callback(true)
@@ -125,6 +132,7 @@ export class ActiveSessions {
         console.log('user disconnected')
         socket.leave(connectedSession.uuid)
         this.onUserDisconnected(fileId, user)
+        clearInterval(updateInterval)
       })
     })
   }
@@ -136,13 +144,15 @@ export class ActiveSessions {
   }
 
   destroySession(toDestroyFileId: number) {
-    this.sessionList.filter(session => session.fileId !== toDestroyFileId)
     let toDestroySession = this.sessionList.find(session => session.fileId === toDestroyFileId)
-
+    
     let data = toDestroySession?.doc.toJSON().join("\n")
-
+    
     fs.writeFileSync(toDestroySession?.filePath as string, data as string)
     console.log(`saved file ${toDestroySession?.filePath}`)
+    toDestroySession = undefined
+    this.sessionList.filter(session => session.fileId !== toDestroyFileId)
+    console.log(`removed session for fileId ${toDestroyFileId} from active sessions`)
     
   }
 
@@ -183,7 +193,6 @@ export class ActiveSessions {
       session.removeUser(disconnectedUser.userId)
       if (session.connectedUsers.length < 1) {
         this.destroySession(openedFileId)
-        console.log(`removed session for fileId ${openedFileId} from active sessions`)
       }
     } else {
       console.log(`session for fileId ${openedFileId} doesn't have any connected user`)
