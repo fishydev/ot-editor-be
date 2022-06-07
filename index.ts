@@ -5,6 +5,7 @@ import * as fs from "fs"
 import { Server, Socket } from "socket.io"
 import * as bodyParser from "body-parser"
 import { Session, ActiveSessions } from './services/sessionService'; 
+import { CollabSession } from "./services/otService"
 import { v4 as uuid } from "uuid"
 
 import routes from "./routes"
@@ -26,7 +27,7 @@ const server = http.createServer(app)
 
 const port = process.env.port || 8999
 
-const activeSessions = new ActiveSessions(server)
+const collabSession = new CollabSession(server)
 
 // Socket.io
 // io.on('connection', (socket: Socket) => {
