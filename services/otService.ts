@@ -8,11 +8,13 @@ export class CollabSession {
   userList: string[]
   doc: Text
   io: Server
+  pending: ((value: any) => void)[]
 
   constructor(httpServer: HttpServer) {
     this.io = new Server(httpServer)
     this.updates = []
     this.userList = []
+    this.pending = []
     this.doc = Text.of(["from server"])
     this.initWebsocket()
   }
@@ -20,6 +22,7 @@ export class CollabSession {
   initWebsocket() {
     this.io.on('connection', (socket: Socket) => {
       this.userList.push(socket.handshake.query.username as string)
+      this.io.emit(`connectedUsers`, this.userList.length)
       let updateInterval: NodeJS.Timer
 
       console.log(`a user connected`)
@@ -34,15 +37,21 @@ export class CollabSession {
       })
 
       socket.on('pullUpdates', (data, callback) => {
-        updateInterval = setInterval(() => {
-          if (data.version < this.updates.length) {
-            callback(this.updates.slice(data.version))
-            clearInterval(updateInterval)
-            console.log(`pullUpdates res sent`)
-          } else {
-            console.log(`no new update, delayed for 1 s`)
-          }
-        }, 5000)
+        // updateInterval = setInterval(() => {
+        //   if (data.version < this.updates.length) {
+        //     callback(this.updates.slice(data.version))
+        //     clearInterval(updateInterval)
+        //     console.log(`pullUpdates res sent`)
+        //   } else {
+        //     console.log(`no new update, delayed for 1 s`)
+        //   }
+        // }, 5000)
+
+        if (data.version < this.updates.length) {
+          callback(this.updates.slice(data.version))
+        } else {
+          this.pending.push(callback)
+        }
       })
 
       socket.on('pushUpdates', (data, callback) => {
@@ -58,10 +67,12 @@ export class CollabSession {
             console.log(`update applied`)
           }
           callback(true)
+          while(this.pending.length) this.pending.pop()!(data.updates)
         }
       })
 
       socket.on(`getDocument`, (data, callback) => {
+        // console.log(typeof callback)
         callback({
           doc: this.doc,
           version: this.updates.length
